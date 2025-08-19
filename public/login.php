@@ -1,0 +1,49 @@
+<?php
+require_once __DIR__ . '/../src/auth.php';
+require_once __DIR__ . '/../src/db.php';
+require_once __DIR__ . '/../src/csrf.php';
+require_once __DIR__ . '/../src/logger.php';
+
+start_session();
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = $_POST['csrf'] ?? '';
+    if (!check_csrf($token)) {
+        $error = 'Ошибка авторизации.';
+    } else {
+        $login = trim($_POST['login'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $stmt = db()->prepare("SELECT id, password_hash FROM users WHERE login = ? AND role = 'user'");
+        $stmt->execute([$login]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user && password_verify($password, $user['password_hash'])) {
+            login_user($user['id'], 'user');
+            header('Location: protected.php');
+            exit;
+        } else {
+            log_fail($login);
+            $error = 'Ошибка авторизации.';
+        }
+    }
+}
+
+$csrf = csrf_token();
+?>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход</title>
+</head>
+<body>
+<?php if ($error): ?><p><?=htmlspecialchars($error)?></p><?php endif; ?>
+<form method="post">
+    <input type="hidden" name="csrf" value="<?=htmlspecialchars($csrf)?>">
+    <label>Логин: <input type="text" name="login" required></label><br>
+    <label>Пароль: <input type="password" name="password" required></label><br>
+    <button type="submit">Войти</button>
+</form>
+<p><a href="oauth_vk_start.php">Авторизоваться через VK</a></p>
+</body>
+</html>
