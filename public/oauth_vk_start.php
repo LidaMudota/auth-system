@@ -7,5 +7,5 @@ $params = [
     'v' => $config['vk']['version'],
     'scope' => ''
 ];
-header('Location: https://oauth.vk.com/authorize?' . http_build_query($params));
+header('Location: https://id.vk.com/authorize?' . http_build_query($params));
 exit;

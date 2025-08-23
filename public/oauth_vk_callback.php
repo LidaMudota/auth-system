@@ -16,7 +16,7 @@ $params = [
     'code' => $code,
 ];
 
-$url = 'https://oauth.vk.com/access_token?' . http_build_query($params);
+$url = 'https://id.vk.com/access_token?' . http_build_query($params);
 $response = file_get_contents($url);
 $data = json_decode($response, true);
 
