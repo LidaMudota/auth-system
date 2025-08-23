@@ -7,7 +7,8 @@ $config = require __DIR__ . '/../config/config.php';
 
 $code  = $_GET['code']  ?? '';
 $state = $_GET['state'] ?? '';
-if (!$code || !$state || $state !== ($_SESSION['vk_state'] ?? '')) {
+$deviceId = $_GET['device_id'] ?? '';
+if (!$code || !$state || $state !== ($_SESSION['vk_state'] ?? '') || !$deviceId) {
     exit('Ошибка');
 }
 
@@ -23,6 +24,7 @@ $body = [
     'redirect_uri'  => $config['vk']['redirect_uri'],
     'client_id'     => $config['vk']['client_id'],
     'code_verifier' => $verifier, // ВАЖНО: без client_secret
+    'device_id'    => $deviceId,
 ];
 
 $opts = [
