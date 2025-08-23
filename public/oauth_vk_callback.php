@@ -1,23 +1,35 @@
 <?php
+session_start();
 require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/db.php';
 
 $config = require __DIR__ . '/../config/config.php';
 $code = $_GET['code'] ?? '';
+$state = $_GET['state'] ?? '';
 
-if (!$code) {
+if (!$code || !$state || $state !== ($_SESSION['vk_state'] ?? '')) {
     exit('Ошибка');
 }
+unset($_SESSION['vk_state']);
 
 $params = [
-    'client_id' => $config['vk']['client_id'],
+    'client_id'     => $config['vk']['client_id'],
     'client_secret' => $config['vk']['client_secret'],
-    'redirect_uri' => $config['vk']['redirect_uri'],
-    'code' => $code,
+    'redirect_uri'  => $config['vk']['redirect_uri'],
+    'code'          => $code,
+    'grant_type'    => 'authorization_code',
 ];
 
-$url = 'https://id.vk.com/access_token?' . http_build_query($params);
-$response = file_get_contents($url);
+$options = [
+    'http' => [
+        'method'  => 'POST',
+        'header'  => 'Content-type: application/x-www-form-urlencoded',
+        'content' => http_build_query($params)
+    ]
+];
+
+$context = stream_context_create($options);
+$response = file_get_contents('https://id.vk.com/oauth2/token', false, $context);
 $data = json_decode($response, true);
 
 if (!empty($data['user_id'])) {
