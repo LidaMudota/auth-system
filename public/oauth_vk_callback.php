@@ -22,8 +22,7 @@ $body = [
     'code'          => $code,
     'redirect_uri'  => $config['vk']['redirect_uri'],
     'client_id'     => $config['vk']['client_id'],
-    'client_secret' => $config['vk']['client_secret'],
-    'code_verifier' => $verifier,
+    'code_verifier' => $verifier, // ВАЖНО: без client_secret
 ];
 
 $opts = [
