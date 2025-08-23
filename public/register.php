@@ -30,14 +30,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Регистрация</title>
+    <link rel="stylesheet" href="assets/voltage.css">
 </head>
 <body>
-<?php if ($error): ?><p><?=htmlspecialchars($error)?></p><?php endif; ?>
-<form method="post">
-    <label>Логин: <input type="text" name="login" required></label><br>
-    <label>Пароль: <input type="password" name="password" required></label><br>
-    <button type="submit">Зарегистрироваться</button>
-</form>
-<p><a href="oauth_vk_start.php">Авторизоваться через VK</a></p>
+    <div class="scene">
+        <div class="cube">
+            <div class="cube-face"></div>
+            <div class="cube-face"></div>
+            <div class="cube-face"></div>
+            <div class="cube-face"></div>
+            <div class="cube-face"></div>
+            <div class="cube-face"></div>
+        </div>
+    </div>
+    <?php if ($error): ?><p class="alert"><?=htmlspecialchars($error)?></p><?php endif; ?>
+    <form method="post" class="frame">
+        <label>Логин: <input type="text" name="login" required></label>
+        <label>Пароль: <input type="password" name="password" required></label>
+        <button class="brutalist-button" type="submit">
+            <span class="button-text"><span></span><span>Регистрация</span></span>
+        </button>
+    </form>
+    <p>
+        <a class="brutalist-button" href="oauth_vk_start.php">
+            <span class="button-text"><span></span><span>VK</span></span>
+        </a>
+    </p>
 </body>
 </html>
