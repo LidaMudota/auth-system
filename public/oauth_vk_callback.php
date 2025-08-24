@@ -18,7 +18,21 @@ unset($_SESSION['vk_state'], $_SESSION['vk_code_verifier'], $_SESSION['vk_nonce'
 
 if (!$verifier || !$nonce) exit('Ошибка');
 
-$tokenUrl = 'https://id.vk.com/oauth2/token';
+function vk_token_exchange(array $body, array $headers) {
+    $ch = curl_init('https://id.vk.com/oauth2/token');
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => http_build_query($body),
+        CURLOPT_HTTPHEADER     => $headers,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 15,
+    ]);
+    $resp = curl_exec($ch);
+    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err  = curl_error($ch);
+    curl_close($ch);
+    return [$http, $resp, $err];
+}
 
 $body = [
     'grant_type'    => 'authorization_code',
@@ -26,31 +40,35 @@ $body = [
     'redirect_uri'  => $config['vk']['redirect_uri'],
     'client_id'     => $config['vk']['client_id'],
     'code_verifier' => $verifier,
-    'device_id'     => $deviceId,
 ];
-if (!empty($config['vk']['client_secret'])) {
-    $body['client_secret'] = $config['vk']['client_secret'];
-}
-$body = http_build_query($body);
 
-$ch = curl_init($tokenUrl);
-curl_setopt_array($ch, [
-    CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => $body,
-    CURLOPT_HTTPHEADER     => [
-        'Content-Type: application/x-www-form-urlencoded',
-        'Accept: application/json',
-    ],
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT        => 15,
-]);
-$resp = curl_exec($ch);
-$http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$err  = curl_error($ch);
-curl_close($ch);
+$headers = [
+    'Content-Type: application/x-www-form-urlencoded',
+    'Accept: application/json',
+];
+
+[$http, $resp, $err] = vk_token_exchange($body, $headers);
 
 if ($resp === false) exit('Ошибка токена (curl): '.$err);
-if ($http !== 200)    exit('Ошибка токена HTTP '.$http.': '.$resp);
+
+if ($http !== 200) {
+    $headers[] = 'X-Device-Id: '.$deviceId;
+    [$http, $resp, $err] = vk_token_exchange($body, $headers);
+}
+
+if ($resp === false) exit('Ошибка токена (curl): '.$err);
+
+if ($http !== 200 && !empty($config['vk']['client_secret'])) {
+    $body['client_secret'] = $config['vk']['client_secret'];
+    [$http, $resp, $err] = vk_token_exchange($body, $headers);
+}
+
+if ($resp === false) exit('Ошибка токена (curl): '.$err);
+
+if ($http !== 200) {
+    header('Content-Type: text/plain; charset=UTF-8');
+    exit("Ошибка токена HTTP $http:\n$resp");
+}
 
 $data = json_decode($resp, true);
 
