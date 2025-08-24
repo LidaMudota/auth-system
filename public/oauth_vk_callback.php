@@ -38,6 +38,7 @@ curl_setopt_array($ch, [
   CURLOPT_TIMEOUT        => 15,
 ]);
 $resp = curl_exec($ch);
+// echo $resp; exit;  // временно, если надо посмотреть
 $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
@@ -48,17 +49,40 @@ if ($http !== 200) {
 
 $data = json_decode($resp, true);
 
-$idToken = $data['id_token'] ?? null;
-if (!$idToken) exit('Нет id_token');
+$access  = $data['access_token'] ?? null;
+$idToken = $data['id_token']     ?? null;
 
-[$h, $p, $s] = explode('.', $idToken);
-$payload = json_decode(base64_decode(strtr($p, '-_', '+/')), true);
-if (!is_array($payload)) exit('Повреждённый id_token');
+if (!$idToken && $access) {
+    // получить sub через userinfo
+    $ch = curl_init('https://id.vk.com/oauth2/userinfo');
+    curl_setopt_array($ch, [
+        CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $access, 'Accept: application/json'],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 10,
+    ]);
+    $uResp = curl_exec($ch);
+    $uHttp = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-if (($payload['nonce'] ?? '') !== $nonce) exit('Неверный nonce');
+    if ($uHttp !== 200) {
+        header('text/plain; charset=utf-8');
+        exit("Ошибка userinfo HTTP $uHttp:\n$uResp");
+    }
 
-$vkId = $payload['sub'] ?? null;
-if (!$vkId) exit('Нет sub в id_token');
+    $payload = json_decode($uResp, true);
+    $vkId    = $payload['sub'] ?? null;
+} elseif ($idToken) {
+    // как у тебя было — распарсить id_token и достать sub
+    [$h, $p, $s] = explode('.', $idToken);
+    $payload = json_decode(base64_decode(strtr($p, '-_', '+/')), true);
+    if (($payload['nonce'] ?? '') !== $nonce) exit('Неверный nonce');
+    $vkId = $payload['sub'] ?? null;
+} else {
+    header('text/plain; charset=utf-8');
+    exit("Не получили ни id_token, ни access_token:\n$resp");
+}
+
+if (!$vkId) exit('Не получили sub от VK ID');
 
 $stmt = db()->prepare('SELECT id FROM users WHERE vk_user_id = ?');
 $stmt->execute([$vkId]);
