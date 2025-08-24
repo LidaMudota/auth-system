@@ -17,7 +17,7 @@ unset($_SESSION['vk_state'], $_SESSION['vk_nonce'], $_SESSION['vk_verifier']);
 
 if (!$nonce || !$verifier) exit('Ошибка');
 
-$tokenUrl = 'https://id.vk.com/oauth2/token';
+$tokenUrl = 'https://id.vk.com/oauth2/auth';
 
 $body = [
     'grant_type'    => 'authorization_code',
@@ -25,12 +25,7 @@ $body = [
     'redirect_uri'  => $config['vk']['redirect_uri'], // строго тот же
     'client_id'     => $config['vk']['client_id'],
     'code_verifier' => $verifier,
-    'client_secret' => $config['vk']['client_secret'],
   ];
-  
-  if (isset($_GET['device_id'])) {
-      $body['device_id'] = $_GET['device_id'];
-  }
   
   $body = http_build_query($body);
 
