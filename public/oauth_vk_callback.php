@@ -18,7 +18,7 @@ unset($_SESSION['vk_state'], $_SESSION['vk_code_verifier'], $_SESSION['vk_nonce'
 
 if (!$verifier || !$nonce) exit('Ошибка');
 
-$tokenUrl = 'https://id.vk.com/oauth2/v2/token';
+$tokenUrl = 'https://id.vk.com/oauth2/token';
 
 $body = [
     'grant_type'    => 'authorization_code',
@@ -28,12 +28,19 @@ $body = [
     'code_verifier' => $verifier,
     'device_id'     => $deviceId,
 ];
+if (!empty($config['vk']['client_secret'])) {
+    $body['client_secret'] = $config['vk']['client_secret'];
+}
+$body = http_build_query($body);
 
 $ch = curl_init($tokenUrl);
 curl_setopt_array($ch, [
     CURLOPT_POST           => true,
-    CURLOPT_POSTFIELDS     => http_build_query($body),
-    CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded','Accept: application/json'],
+    CURLOPT_POSTFIELDS     => $body,
+    CURLOPT_HTTPHEADER     => [
+        'Content-Type: application/x-www-form-urlencoded',
+        'Accept: application/json',
+    ],
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_TIMEOUT        => 15,
 ]);
