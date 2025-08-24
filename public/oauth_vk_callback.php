@@ -19,15 +19,14 @@ if (!$nonce || !$verifier) exit('Ошибка');
 
 $tokenUrl = 'https://id.vk.com/oauth2/auth';
 
-$body = [
+$body = http_build_query([
     'grant_type'    => 'authorization_code',
     'code'          => $code,
-    'redirect_uri'  => $config['vk']['redirect_uri'], // строго тот же
+    'redirect_uri'  => $config['vk']['redirect_uri'],
     'client_id'     => $config['vk']['client_id'],
     'code_verifier' => $verifier,
-  ];
-  
-  $body = http_build_query($body);
+    'client_secret' => $config['vk']['client_secret'],
+]);
 
 $ch = curl_init($tokenUrl);
 curl_setopt_array($ch, [
