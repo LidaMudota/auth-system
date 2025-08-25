@@ -17,39 +17,38 @@ unset($_SESSION['vk_state'], $_SESSION['vk_nonce'], $_SESSION['vk_verifier']);
 
 if (!$nonce || !$verifier) exit('Ошибка');
 
-$tokenUrl = 'https://id.vk.com/oauth2/auth';
+$tokenUrl = 'https://id.vk.com/oauth2/token'; // <-- ВАЖНО: /token
 
 $body = http_build_query([
     'grant_type'    => 'authorization_code',
     'code'          => $code,
-    'redirect_uri'  => $config['vk']['redirect_uri'],
+    'redirect_uri'  => $config['vk']['redirect_uri'], // должен в точности совпадать с authorize
     'client_id'     => $config['vk']['client_id'],
     'code_verifier' => $verifier,
-    'client_secret' => $config['vk']['client_secret'],
+    // если вернёт invalid_client — добавь секрет:
+    // 'client_secret' => $config['vk']['client_secret'],
 ]);
 
 $ch = curl_init($tokenUrl);
 curl_setopt_array($ch, [
   CURLOPT_POST           => true,
   CURLOPT_POSTFIELDS     => $body,
-  CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded','Accept: application/json'],
+  CURLOPT_HTTPHEADER     => [
+    'Content-Type: application/x-www-form-urlencoded',
+    'Accept: application/json',
+],
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_TIMEOUT        => 15,
 ]);
 $resp = curl_exec($ch);
-// echo $resp; exit;  // временно, если надо посмотреть
 $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
-if ($http !== 200) {
-    header('text/plain');
-    die("Ошибка токена HTTP $http:\n$resp");
-}
+if ($http !== 200) { header('text/plain'); exit("HTTP $http\n$resp"); }
 
-$data = json_decode($resp, true);
-
-$access  = $data['access_token'] ?? null;
+$data    = json_decode($resp, true);
 $idToken = $data['id_token']     ?? null;
+$access  = $data['access_token'] ?? null;
 
 if (!$idToken && $access) {
     // получить sub через userinfo
