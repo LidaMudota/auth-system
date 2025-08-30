@@ -51,10 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <span class="button-text"><span></span><span>Регистрация</span></span>
         </button>
     </form>
-    <p>
-        <a class="brutalist-button" href="oauth_vk_start.php">
-            <span class="button-text"><span></span><span>VK</span></span>
-        </a>
-    </p>
+    <p><a href="/auth-system/public/oauth_vk_start.php">Авторизоваться через VK</a></p>
 </body>
 </html>
