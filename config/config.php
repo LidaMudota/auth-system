@@ -11,9 +11,7 @@ return [
     'vk' => [
         'client_id' => '54061173',
         'client_secret' => '0ikovGgaDYXDIQMzK7rD',
-        'redirect_uri' => (($_SERVER['HTTP_HOST'] ?? '') === 'localhost')
-        ? 'http://localhost/auth-system/public/oauth_vk_callback.php'
-        : 'https://tri-sobaki.ru/oauth_vk_callback.php',
+        'redirect_uri' => 'http://localhost/auth-system/public/oauth_vk_callback.php',
         'version' => '5.126',
     ],
     'log_file' => __DIR__ . '/../storage/logs/auth.log',
