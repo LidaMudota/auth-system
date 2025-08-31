@@ -57,6 +57,45 @@ $csrf = csrf_token();
             <span class="button-text"><span></span><span>Войти</span></span>
         </button>
     </form>
-    <p><a href="/auth-system/public/oauth_vk_start.php">Авторизоваться через VK</a></p>
+    <div id="vkid-btn" style="margin-top:12px"></div>
+
+<script src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"></script>
+<script>
+if ('VKIDSDK' in window) {
+  const VKID = window.VKIDSDK;
+
+  VKID.Config.init({
+    app: 54061173,
+    redirectUrl: 'http://localhost/auth-system/public/oauth_vk_callback.php',
+    responseMode: VKID.ConfigResponseMode.Callback,
+    source: VKID.ConfigSource.LOWCODE,
+    scope: ''
+  });
+
+  const oneTap = new VKID.OneTap();
+  oneTap.render({
+      container: document.getElementById('vkid-btn'),
+      fastAuthEnabled: false,
+      showAlternativeLogin: false
+    })
+    .on(VKID.WidgetEvents.ERROR, console.error)
+    .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+      const code = payload.code;
+      const deviceId = payload.device_id;
+
+      VKID.Auth.exchangeCode(code, deviceId)
+        .then(function (data) {
+          const vkUserId = data.user_id || (data.user && data.user.id);
+          return fetch('/auth-system/public/oauth_vk_callback.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ vk_user_id: vkUserId })
+          });
+        })
+        .then(() => { location.href = '/auth-system/public/protected.php'; })
+        .catch(console.error);
+    });
+}
+</script>
 </body>
 </html>

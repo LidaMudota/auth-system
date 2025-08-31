@@ -9,8 +9,8 @@ return [
         ],
     ],
     'vk' => [
-        'client_id' => '54061173',
-        'client_secret' => '0ikovGgaDYXDIQMzK7rD',
+        'client_id' => '54095571',
+        'client_secret' => 'WRLxvjS5XiYFjnorE1aj',
         'redirect_uri' => 'http://localhost/auth-system/public/oauth_vk_callback.php',
         'version' => '5.126',
     ],
