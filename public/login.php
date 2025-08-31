@@ -57,45 +57,53 @@ $csrf = csrf_token();
             <span class="button-text"><span></span><span>Войти</span></span>
         </button>
     </form>
-    <div id="vkid-btn" style="margin-top:12px"></div>
+    <div style="margin-top:12px">
+        <script src="https://unpkg.com/@vkid/sdk@3.0.0/dist-sdk/umd/index.js"></script>
+        <script>
+        if ('VKIDSDK' in window) {
+            const VKID = window.VKIDSDK;
 
-<script src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"></script>
-<script>
-if ('VKIDSDK' in window) {
-  const VKID = window.VKIDSDK;
+            VKID.Config.init({
+                app: 54095571,
+                redirectUrl: 'http://localhost/auth-system/public/oauth_vk_callback.php',
+                responseMode: VKID.ConfigResponseMode.Callback,
+                source: VKID.ConfigSource.LOWCODE,
+                scope: ''
+            });
 
-  VKID.Config.init({
-    app: 54061173,
-    redirectUrl: 'http://localhost/auth-system/public/oauth_vk_callback.php',
-    responseMode: VKID.ConfigResponseMode.Callback,
-    source: VKID.ConfigSource.LOWCODE,
-    scope: ''
-  });
+            const oneTap = new VKID.OneTap();
 
-  const oneTap = new VKID.OneTap();
-  oneTap.render({
-      container: document.getElementById('vkid-btn'),
-      fastAuthEnabled: false,
-      showAlternativeLogin: false
-    })
-    .on(VKID.WidgetEvents.ERROR, console.error)
-    .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
-      const code = payload.code;
-      const deviceId = payload.device_id;
+            oneTap.render({
+                container: document.currentScript.parentElement,
+                fastAuthEnabled: false,
+                showAlternativeLogin: true
+            })
+            .on(VKID.WidgetEvents.ERROR, vkidOnError)
+            .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+                const code = payload.code;
+                const deviceId = payload.device_id;
 
-      VKID.Auth.exchangeCode(code, deviceId)
-        .then(function (data) {
-          const vkUserId = data.user_id || (data.user && data.user.id);
-          return fetch('/auth-system/public/oauth_vk_callback.php', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ vk_user_id: vkUserId })
-          });
-        })
-        .then(() => { location.href = '/auth-system/public/protected.php'; })
-        .catch(console.error);
-    });
-}
-</script>
+                VKID.Auth.exchangeCode(code, deviceId)
+                    .then(vkidOnSuccess)
+                    .catch(vkidOnError);
+            });
+
+            function vkidOnSuccess(data) {
+                const vkUserId = data.user_id || (data.user && data.user.id);
+                fetch('/auth-system/public/oauth_vk_callback.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ vk_user_id: vkUserId })
+                })
+                .then(() => { location.href = '/auth-system/public/protected.php'; })
+                .catch(vkidOnError);
+            }
+
+            function vkidOnError(error) {
+                console.error(error);
+            }
+        }
+        </script>
+    </div>
 </body>
 </html>
