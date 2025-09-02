@@ -1,11 +1,15 @@
 <?php
-function db() {
+function db(): PDO {
     static $pdo;
-    if ($pdo) {
+    if ($pdo instanceof PDO) {
         return $pdo;
     }
     $config = require __DIR__ . '/../config/config.php';
     $db = $config['db'];
-    $pdo = new PDO($db['dsn'], $db['user'], $db['password'], $db['options'] ?? []);
+    $dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s', $db['host'], $db['name'], $db['charset']);
+    $pdo = new PDO($dsn, $db['user'], $db['pass'], [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
     return $pdo;
 }

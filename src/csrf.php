@@ -1,18 +1,28 @@
 <?php
-function csrf_token() {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
-    }
-    $token = bin2hex(random_bytes(32));
-    $_SESSION['csrf_token'] = $token;
+require_once __DIR__ . '/auth.php';
+
+function csrf_generate(): string {
+    start_session_once();
+    $config = require __DIR__ . '/../config/config.php';
+    $len = $config['security']['csrf_token_len'];
+    $token = bin2hex(random_bytes($len));
+    $_SESSION[$config['security']['csrf_key']] = $token;
     return $token;
 }
 
-function check_csrf($token) {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
+function csrf_get(): string {
+    start_session_once();
+    $config = require __DIR__ . '/../config/config.php';
+    $key = $config['security']['csrf_key'];
+    if (empty($_SESSION[$key])) {
+        return csrf_generate();
     }
-    $valid = isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
-    unset($_SESSION['csrf_token']);
-    return $valid;
+    return $_SESSION[$key];
+}
+
+function csrf_check(string $token): bool {
+    start_session_once();
+    $config = require __DIR__ . '/../config/config.php';
+    $key = $config['security']['csrf_key'];
+    return isset($_SESSION[$key]) && hash_equals($_SESSION[$key], $token);
 }
