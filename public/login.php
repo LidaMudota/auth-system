@@ -56,45 +56,21 @@ $token = csrf_get();
     </form>
     <div>
     <script src="/auth-system/public/assets/vkid-sdk.js"></script>
-      <script>
-        const VKID = window.VKIDSDK;
-        VKID.Config.init({
-          app: 54095571,
-          responseMode: VKID.ConfigResponseMode.PostMessage,
-          source: VKID.ConfigSource.LOWCODE
-        });
-      </script>
-      <script type="text/javascript">
-        const oneTap = new VKID.OneTap();
-
-        oneTap.render({
-          container: document.currentScript.parentElement,
-          showAlternativeLogin: true
-        })
-        .on(VKID.WidgetEvents.ERROR, vkidOnError)
-        .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
-          const code = payload.code;
-          const deviceId = payload.device_id;
-
-          VKID.Auth.exchangeCode(code, deviceId)
-            .then(vkidOnSuccess)
-            .catch(vkidOnError);
-        });
-
-        function vkidOnSuccess(data) {
-          fetch('/auth-system/public/oauth_vk_callback.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-          })
-          .then(r => { if (r.status === 200 || r.status === 204) { window.location.href = 'protected.php'; } else { alert('Ошибка VK'); }})
-          .catch(() => alert('Ошибка VK'));
-        }
-
-        function vkidOnError(error) {
-          alert('Ошибка VK');
-        }
-      </script>
+    <script>
+      const VKID = window.VKIDSDK;
+      VKID.Config.init({
+        app: 54095571,
+        redirectUrl: 'http://localhost/auth-system/public/oauth_vk_callback.php',
+        responseMode: VKID.ConfigResponseMode.Callback,
+        source: VKID.ConfigSource.LOWCODE
+      });
+    </script>
+    <script>
+      new VKID.OneTap()
+        .render({ container: document.currentScript.parentElement, showAlternativeLogin: true })
+        .on(VKID.WidgetEvents.ERROR, () => alert('Ошибка VK'));
+      // В этом режиме SDK САМ сделает редирект на redirectUrl с ?code=...
+    </script>
     </div>
 </div>
 </body>
