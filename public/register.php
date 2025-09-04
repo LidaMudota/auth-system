@@ -42,17 +42,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit">Зарегистрироваться</button>
     </form>
     <div>
-      <script src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"></script>
+    <script src="https://unpkg.com/@vkid/sdk@3/dist-sdk/umd/index.js"></script>
       <script type="text/javascript">
         if ('VKIDSDK' in window) {
           const VKID = window.VKIDSDK;
 
           VKID.Config.init({
             app: 54095571,
-            redirectUrl: 'http://localhost/auth-system/public/oauth_vk_callback.php',
-            responseMode: VKID.ConfigResponseMode.Callback,
+            responseMode: VKID.ConfigResponseMode.PostMessage,
             source: VKID.ConfigSource.LOWCODE,
-            scope: '', // Заполните нужными доступами по необходимости
           });
 
           const oneTap = new VKID.OneTap();
