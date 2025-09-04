@@ -55,7 +55,7 @@ $token = csrf_get();
         <button type="submit">Войти</button>
     </form>
     <div>
-    <script src="https://unpkg.com/@vkid/sdk@3.0.2/dist-sdk/umd/index.js"></script>
+    <script src="/auth-system/public/assets/vkid-sdk.js"></script>
       <script>
         const VKID = window.VKIDSDK;
         VKID.Config.init({
