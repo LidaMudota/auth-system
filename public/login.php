@@ -55,46 +55,44 @@ $token = csrf_get();
         <button type="submit">Войти</button>
     </form>
     <div>
-      <script src="https://unpkg.com/@vkid/sdk@3/dist-sdk/umd/index.js"></script>
+    <script src="https://unpkg.com/@vkid/sdk@3.0.2/dist-sdk/umd/index.js"></script>
+      <script>
+        const VKID = window.VKIDSDK;
+        VKID.Config.init({
+          app: 54095571,
+          responseMode: VKID.ConfigResponseMode.PostMessage,
+          source: VKID.ConfigSource.LOWCODE
+        });
+      </script>
       <script type="text/javascript">
-        if ('VKIDSDK' in window) {
-          const VKID = window.VKIDSDK;
+        const oneTap = new VKID.OneTap();
 
-          VKID.Config.init({
-            app: 54095571,
-            responseMode: VKID.ConfigResponseMode.PostMessage,
-            source: VKID.ConfigSource.LOWCODE,
-          });
+        oneTap.render({
+          container: document.currentScript.parentElement,
+          showAlternativeLogin: true
+        })
+        .on(VKID.WidgetEvents.ERROR, vkidOnError)
+        .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+          const code = payload.code;
+          const deviceId = payload.device_id;
 
-          const oneTap = new VKID.OneTap();
+          VKID.Auth.exchangeCode(code, deviceId)
+            .then(vkidOnSuccess)
+            .catch(vkidOnError);
+        });
 
-          oneTap.render({
-            container: document.currentScript.parentElement,
-            showAlternativeLogin: true
+        function vkidOnSuccess(data) {
+          fetch('/auth-system/public/oauth_vk_callback.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
           })
-          .on(VKID.WidgetEvents.ERROR, vkidOnError)
-          .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
-            const code = payload.code;
-            const deviceId = payload.device_id;
+          .then(r => { if (r.status === 200 || r.status === 204) { window.location.href = 'protected.php'; } else { alert('Ошибка VK'); }})
+          .catch(() => alert('Ошибка VK'));
+        }
 
-            VKID.Auth.exchangeCode(code, deviceId)
-              .then(vkidOnSuccess)
-              .catch(vkidOnError);
-          });
-        
-          function vkidOnSuccess(data) {
-            fetch('/auth-system/public/oauth_vk_callback.php', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(data)
-            })
-            .then(r => { if (r.status === 200 || r.status === 204) { window.location.href = 'protected.php'; } else { alert('Ошибка VK'); }})
-            .catch(() => alert('Ошибка VK'));
-          }
-        
-          function vkidOnError(error) {
-            alert('Ошибка VK');
-          }
+        function vkidOnError(error) {
+          alert('Ошибка VK');
         }
       </script>
     </div>
