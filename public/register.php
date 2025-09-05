@@ -63,5 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>
     </div>
 </div>
+<a href="https://oauth.vk.com/authorize?client_id=54095571&redirect_uri=http%3A%2F%2Flocalhost%2Fauth-system%2Fpublic%2Foauth_vk_callback.php&response_type=code&v=5.199&state=test" target="_blank">
+  ТЕСТОВЫЙ ВХОД ЧЕРЕЗ VK (без SDK)
+</a>
 </body>
 </html>
