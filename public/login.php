@@ -64,12 +64,15 @@ $token = csrf_get();
         responseMode: VKID.ConfigResponseMode.Callback,
         source: VKID.ConfigSource.LOWCODE
       });
-    </script>
-    <script>
-      new VKID.OneTap()
-        .render({ container: document.currentScript.parentElement, showAlternativeLogin: true })
-        .on(VKID.WidgetEvents.ERROR, () => alert('Ошибка VK'));
-      // В этом режиме SDK САМ сделает редирект на redirectUrl с ?code=...
+
+      new VKID.OneTap().render({
+        container: document.currentScript.parentElement,
+        showAlternativeLogin: true
+      })
+      .on(VKID.WidgetEvents.ERROR, (e) => {
+        // Не мешаем флоу из-за трекинга/телеметрии
+        console.warn('VKID widget error (non-fatal)', e);
+      });
     </script>
     </div>
 </div>
