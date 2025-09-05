@@ -60,19 +60,30 @@ $token = csrf_get();
       const VKID = window.VKIDSDK;
       VKID.Config.init({
         app: 54095571,
-        redirectUrl: 'http://localhost/auth-system/public/oauth_vk_callback.php',
-        responseMode: VKID.ConfigResponseMode.Callback,
+        responseMode: VKID.ConfigResponseMode.PostMessage,
         source: VKID.ConfigSource.LOWCODE
       });
 
-      new VKID.OneTap().render({
-        container: document.currentScript.parentElement,
-        showAlternativeLogin: true
-      })
-      .on(VKID.WidgetEvents.ERROR, (e) => {
-        // Не мешаем флоу из-за трекинга/телеметрии
-        console.warn('VKID widget error (non-fatal)', e);
-      });
+      new VKID.OneTap()
+        .render({ container: document.currentScript.parentElement, showAlternativeLogin: true })
+        .on(VKID.WidgetEvents.ERROR, (e) => console.warn('VKID ERROR', e))
+        .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, async (payload) => {
+          console.log('LOGIN_SUCCESS payload:', payload);
+          try {
+            const res = await VKID.Auth.exchangeCode(payload.code, payload.device_id);
+            console.log('exchangeCode result:', res);
+
+            const r = await fetch('/auth-system/public/oauth_vk_callback.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(res)
+            });
+            console.log('callback POST status:', r.status);
+            if (r.status === 200 || r.status === 204) location.href = 'protected.php';
+          } catch (err) {
+            console.error('exchangeCode/callback error:', err);
+          }
+        });
     </script>
     </div>
 </div>
