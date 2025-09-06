@@ -13,9 +13,9 @@ const DB_DSN  = 'mysql:host=localhost;dbname=auth_system;charset=utf8mb4';
 const DB_USER = 'root';
 const DB_PASS = '';
 
-// VK (для будущей интеграции; сейчас не используется)
-const VK_CLIENT_ID     = '';
-const VK_CLIENT_SECRET = '';
+// VK OAuth
+const VK_CLIENT_ID     = '54095571';            // твой ID приложения
+const VK_CLIENT_SECRET = 'WRLxvjS5XiYFjnorE1aj';// Защищённый ключ
 const VK_REDIRECT_URI  = 'http://localhost/auth-system/public/oauth_vk_callback.php';
 
 // Логи

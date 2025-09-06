@@ -66,5 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </form>
 
   <p><a href="/auth-system/public/index.php">На главную</a></p>
+  
+  <form method="get" action="/auth-system/public/oauth_vk_start.php" style="margin-top:12px">
+    <button type="submit">Авторизоваться через VK</button>
+  </form>
 </body>
 </html>

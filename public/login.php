@@ -79,10 +79,8 @@ $csrfInput = csrf_field();
 
   <p><a href="/auth-system/public/index.php">На главную</a></p>
 
-  <hr>
-  <!-- Заглушка на VK ID (кнопка пока не активна) -->
-  <form method="get" action="/auth-system/public/oauth_vk_start.php">
-    <button type="submit" disabled>Войти через VK (скоро)</button>
+  <form method="get" action="/auth-system/public/oauth_vk_start.php" style="margin-top:12px">
+    <button type="submit">Авторизоваться через VK</button>
   </form>
 </body>
 </html>
