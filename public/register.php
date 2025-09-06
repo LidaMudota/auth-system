@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="password" name="pass" placeholder="Пароль" required>
         <button type="submit">Зарегистрироваться</button>
     </form>
-    <div>
+    <div id="vkid-one-tap"></div>
     <script src="/auth-system/public/assets/vkid-sdk.js"></script>
     <script>
       const VKID = window.VKIDSDK;
@@ -51,8 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         source: VKID.ConfigSource.LOWCODE
       });
 
+      const container = document.getElementById('vkid-one-tap');
       new VKID.OneTap()
-        .render({ container: document.currentScript.parentElement, showAlternativeLogin: true })
+      .render({ container, showAlternativeLogin: true })
         .on(VKID.WidgetEvents.ERROR, (e) => console.warn('VKID ERROR', e))
         .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, async (payload) => {
           console.log('LOGIN_SUCCESS payload:', payload);
@@ -72,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           }
         });
     </script>
-    </div>
 </div>
 <a href="https://oauth.vk.com/authorize?client_id=54095571&redirect_uri=http%3A%2F%2Flocalhost%2Fauth-system%2Fpublic%2Foauth_vk_callback.php&response_type=code&v=5.199&state=test" target="_blank">
   ТЕСТОВЫЙ ВХОД ЧЕРЕЗ VK (без SDK)

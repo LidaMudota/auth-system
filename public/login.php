@@ -54,7 +54,7 @@ $token = csrf_get();
         <input type="hidden" name="_csrf" value="<?= $token ?>">
         <button type="submit">Войти</button>
     </form>
-    <div>
+    <div id="vkid-one-tap"></div>
     <script src="/auth-system/public/assets/vkid-sdk.js"></script>
     <script>
       const VKID = window.VKIDSDK;
@@ -64,8 +64,9 @@ $token = csrf_get();
         source: VKID.ConfigSource.LOWCODE
       });
 
+      const container = document.getElementById('vkid-one-tap');
       new VKID.OneTap()
-        .render({ container: document.currentScript.parentElement, showAlternativeLogin: true })
+      .render({ container, showAlternativeLogin: true })
         .on(VKID.WidgetEvents.ERROR, (e) => console.warn('VKID ERROR', e))
         .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, async (payload) => {
           console.log('LOGIN_SUCCESS payload:', payload);
@@ -85,7 +86,6 @@ $token = csrf_get();
           }
         });
     </script>
-    </div>
 </div>
 </body>
 </html>
