@@ -1,24 +1,26 @@
 <?php
+// /auth-system/public/index.php
+declare(strict_types=1);
+
 require_once __DIR__ . '/../src/auth.php';
+
 $user = current_user();
 ?>
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Главная</title>
-    <link rel="stylesheet" href="assets/voltage.css">
+  <meta charset="utf-8">
+  <title>Auth System — Главная</title>
 </head>
 <body>
-<div class="container">
-    <ul>
-        <li><a href="register.php">Регистрация</a></li>
-        <li><a href="login.php">Войти</a></li>
-        <li><a href="protected.php">Закрытая страница</a></li>
-        <?php if ($user): ?>
-            <li><a href="logout.php">Выйти</a></li>
-        <?php endif; ?>
-    </ul>
-</div>
+  <h1>Добро пожаловать</h1>
+  <?php if ($user): ?>
+    <p>Вы вошли как <strong><?= htmlspecialchars($user['login']) ?></strong> (роль: <?= htmlspecialchars($user['role']) ?>)</p>
+    <p><a href="/auth-system/public/protected.php">Закрытая страница</a></p>
+    <p><a href="/auth-system/public/logout.php">Выйти</a></p>
+  <?php else: ?>
+    <p><a href="/auth-system/public/register.php">Регистрация</a></p>
+    <p><a href="/auth-system/public/login.php">Войти</a></p>
+  <?php endif; ?>
 </body>
 </html>

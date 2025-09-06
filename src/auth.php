@@ -1,90 +1,146 @@
 <?php
+// /auth-system/src/auth.php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/db.php';
 
-function start_session_once(): void {
-    if (session_status() === PHP_SESSION_NONE) {
+function auth_start_session(): void {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
         session_start();
     }
 }
 
+/**
+ * Безопасная установка куки с поддержкой SameSite.
+ */
+function set_cookie(string $name, string $value, int $lifetime): void {
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    $params = [
+        'expires'  => time() + $lifetime,
+        'path'     => '/',
+        'domain'   => '',
+        'secure'   => $secure,
+        'httponly' => true,
+        'samesite' => REMEMBER_SAMESITE,
+    ];
+    setcookie($name, $value, $params);
+}
+
+/**
+ * Удаление куки «наверняка».
+ */
+function drop_cookie(string $name): void {
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie($name, '', [
+        'expires'  => time() - 3600,
+        'path'     => '/',
+        'domain'   => '',
+        'secure'   => $secure,
+        'httponly' => true,
+        'samesite' => REMEMBER_SAMESITE,
+    ]);
+}
+
 function current_user(): ?array {
-    start_session_once();
-    return $_SESSION['user'] ?? null;
-}
-
-function login_user(int $userId, string $role): void {
-    start_session_once();
-    $_SESSION['user'] = ['id' => $userId, 'role' => $role];
-    session_regenerate_id(true);
-}
-
-function is_role(string $role): bool {
-    $user = current_user();
-    return $user !== null && $user['role'] === $role;
-}
-
-function base64url_encode(string $data): string {
-    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
-}
-
-function issue_remember_token(int $userId): void {
-    $config = require __DIR__ . '/../config/config.php';
-    $token = base64url_encode(random_bytes($config['security']['remember_token_len']));
-    $expires = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
-    $pdo = db();
-    $stmt = $pdo->prepare('UPDATE users SET remember_token = :t, remember_token_expires_at = :e WHERE id = :id');
-    $stmt->execute([':t' => $token, ':e' => $expires, ':id' => $userId]);
-    setcookie(
-        $config['security']['remember_cookie_name'],
-        $token,
-        [
-            'expires' => time() + $config['security']['remember_cookie_lifetime'],
-            'path' => '/',
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]
-    );
-}
-
-function require_auth(): void {
-    start_session_once();
-    if (current_user()) {
-        return;
+    auth_start_session();
+    if (isset($_SESSION['user'])) {
+        return $_SESSION['user'];
     }
-    $config = require __DIR__ . '/../config/config.php';
-    $cookieName = $config['security']['remember_cookie_name'];
-    if (!empty($_COOKIE[$cookieName])) {
-        $pdo = db();
-        $stmt = $pdo->prepare('SELECT id, role, remember_token_expires_at FROM users WHERE remember_token = :t');
-        $stmt->execute([':t' => $_COOKIE[$cookieName]]);
-        $user = $stmt->fetch();
-        if ($user && strtotime($user['remember_token_expires_at']) > time()) {
-            login_user((int)$user['id'], $user['role']);
-            return;
+    // Попытка «запомнить меня»
+    if (!empty($_COOKIE[REMEMBER_COOKIE_NAME])) {
+        $raw = $_COOKIE[REMEMBER_COOKIE_NAME];
+        // Формат: userId:token
+        if (strpos($raw, ':') !== false) {
+            [$userId, $token] = explode(':', $raw, 2);
+            if (ctype_digit($userId) && is_string($token) && strlen($token) >= 40) {
+                $pdo = db();
+                $stmt = $pdo->prepare('SELECT id, login, role, remember_token_hash, remember_token_expiry FROM users WHERE id = :id LIMIT 1');
+                $stmt->execute([':id' => (int)$userId]);
+                $u = $stmt->fetch();
+                if ($u && $u['remember_token_hash'] && $u['remember_token_expiry'] && new DateTime() < new DateTime($u['remember_token_expiry'])) {
+                    $calc = hash('sha256', $token);
+                    if (hash_equals($u['remember_token_hash'], $calc)) {
+                        $_SESSION['user'] = [
+                            'id'    => (int)$u['id'],
+                            'login' => $u['login'],
+                            'role'  => $u['role'],
+                        ];
+                        return $_SESSION['user'];
+                    }
+                }
+            }
         }
+        // Если что-то не так — гасим куку
+        drop_cookie(REMEMBER_COOKIE_NAME);
     }
-    header('Location: login.php');
-    exit;
+    return null;
+}
+
+function login_user(int $userId): void {
+    $pdo = db();
+    $stmt = $pdo->prepare('SELECT id, login, role FROM users WHERE id = :id LIMIT 1');
+    $stmt->execute([':id' => $userId]);
+    $u = $stmt->fetch();
+    auth_start_session();
+    $_SESSION['user'] = [
+        'id'    => (int)$u['id'],
+        'login' => $u['login'],
+        'role'  => $u['role'],
+    ];
+}
+
+function set_remember_me(int $userId): void {
+    // Генерируем независимый токен
+    $token = bin2hex(random_bytes(32)); // 64 hex chars
+    $hash  = hash('sha256', $token);
+    $expiry = (new DateTimeImmutable())->modify('+' . REMEMBER_COOKIE_LIFETIME . ' seconds')->format('Y-m-d H:i:s');
+
+    $pdo = db();
+    $pdo->prepare('UPDATE users SET remember_token_hash = :h, remember_token_expiry = :e WHERE id = :id')
+        ->execute([':h' => $hash, ':e' => $expiry, ':id' => $userId]);
+
+    // Сохраняем в куку «сырой» токен (как положено), вместе с id
+    set_cookie(REMEMBER_COOKIE_NAME, $userId . ':' . $token, REMEMBER_COOKIE_LIFETIME);
+}
+
+function clear_remember_me(int $userId): void {
+    $pdo = db();
+    $pdo->prepare('UPDATE users SET remember_token_hash = NULL, remember_token_expiry = NULL WHERE id = :id')
+        ->execute([':id' => $userId]);
+    drop_cookie(REMEMBER_COOKIE_NAME);
 }
 
 function logout_user(): void {
-    start_session_once();
-    $config = require __DIR__ . '/../config/config.php';
-    $user = current_user();
-    if ($user) {
-        $pdo = db();
-        $stmt = $pdo->prepare('UPDATE users SET remember_token = NULL, remember_token_expires_at = NULL WHERE id = :id');
-        $stmt->execute([':id' => $user['id']]);
+    $u = current_user();
+    if ($u) {
+        clear_remember_me((int)$u['id']);
     }
-    $cookieName = $config['security']['remember_cookie_name'];
-    if (isset($_COOKIE[$cookieName])) {
-        setcookie($cookieName, '', [
-            'expires' => time() - 3600,
-            'path' => '/',
-            'httponly' => true,
-            'samesite' => 'Lax',
+    auth_start_session();
+    $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', [
+            'expires'  => time() - 42000,
+            'path'     => $params['path'],
+            'domain'   => $params['domain'],
+            'secure'   => $params['secure'],
+            'httponly' => $params['httponly'],
+            'samesite' => $params['samesite'] ?? 'Lax',
         ]);
     }
-    $_SESSION = [];
     session_destroy();
+}
+
+function require_auth(): array {
+    $u = current_user();
+    if (!$u) {
+        header('Location: /auth-system/public/login.php');
+        exit;
+    }
+    return $u;
+}
+
+function is_vk_role(?array $u): bool {
+    return isset($u['role']) && $u['role'] === 'vk';
 }

@@ -1,91 +1,88 @@
 <?php
-require_once __DIR__ . '/../src/auth.php';
+// /auth-system/public/login.php
+declare(strict_types=1);
+
 require_once __DIR__ . '/../src/db.php';
+require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/csrf.php';
 require_once __DIR__ . '/../src/logger.php';
 
 $error = null;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $login = trim($_POST['login'] ?? '');
-    $pass = $_POST['pass'] ?? '';
-    if (!csrf_check($_POST['_csrf'] ?? '')) {
-        log_failed_login($login, 'csrf_invalid');
-        $error = 'Неверные данные';
-    } elseif ($login === '' || $pass === '') {
-        log_failed_login($login, 'invalid_input');
-        $error = 'Неверные данные';
+    // 1) Проверка CSRF
+    csrf_validate_or_die($_POST['csrf_token'] ?? null);
+
+    $login = trim((string)($_POST['login'] ?? ''));
+    $pass  = (string)($_POST['pass'] ?? '');
+    $remember = isset($_POST['remember']);
+
+    if ($login === '' || $pass === '') {
+        $error = 'Введите логин и пароль.';
     } else {
         $pdo = db();
-        $stmt = $pdo->prepare('SELECT id, password_hash FROM users WHERE login = :login AND role = "user" AND password_hash IS NOT NULL');
-        $stmt->execute([':login' => $login]);
-        $user = $stmt->fetch();
-        if (!$user) {
-            log_failed_login($login, 'user_not_found');
-            $error = 'Неверные данные';
-        } elseif (!password_verify($pass, $user['password_hash'])) {
-            log_failed_login($login, 'wrong_password');
-            $error = 'Неверные данные';
+        $stmt = $pdo->prepare('SELECT id, login, password_hash FROM users WHERE login = :l LIMIT 1');
+        $stmt->execute([':l' => $login]);
+        $u = $stmt->fetch();
+
+        if (!$u || !password_verify($pass, $u['password_hash'])) {
+            $error = 'Неверный логин или пароль.';
+            log_failed_login($login, 'bad_credentials');
         } else {
-            login_user((int)$user['id'], 'user');
-            if (!empty($_POST['remember'])) {
-                issue_remember_token((int)$user['id']);
+            login_user((int)$u['id']);
+
+            if ($remember) {
+                set_remember_me((int)$u['id']);
+            } else {
+                clear_remember_me((int)$u['id']);
             }
-            header('Location: protected.php');
+
+            header('Location: /auth-system/public/protected.php');
             exit;
         }
     }
 }
-$token = csrf_get();
+
+$csrfInput = csrf_field();
 ?>
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Вход</title>
-    <link rel="stylesheet" href="assets/voltage.css">
+  <meta charset="utf-8">
+  <title>Вход</title>
 </head>
 <body>
-<div class="container">
-    <?php if ($error): ?><div class="error"><?= $error ?></div><?php endif; ?>
-    <form method="post">
-        <input type="text" name="login" placeholder="Логин" required>
-        <input type="password" name="pass" placeholder="Пароль" required>
-        <label><input type="checkbox" name="remember" value="1"> Запомнить меня</label>
-        <input type="hidden" name="_csrf" value="<?= $token ?>">
-        <button type="submit">Войти</button>
-    </form>
-    <div id="vkid-one-tap"></div>
-    <script src="/auth-system/public/assets/vkid-sdk.js"></script>
-    <script>
-      const VKID = window.VKIDSDK;
-      VKID.Config.init({
-        app: 54095571,
-        responseMode: VKID.ConfigResponseMode.PostMessage,
-        source: VKID.ConfigSource.LOWCODE
-      });
+  <h1>Вход</h1>
 
-      const container = document.getElementById('vkid-one-tap');
-      new VKID.OneTap()
-      .render({ container, showAlternativeLogin: true })
-        .on(VKID.WidgetEvents.ERROR, (e) => console.warn('VKID ERROR', e))
-        .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, async (payload) => {
-          console.log('LOGIN_SUCCESS payload:', payload);
-          try {
-            const res = await VKID.Auth.exchangeCode(payload.code, payload.device_id);
-            console.log('exchangeCode result:', res);
+  <?php if ($error): ?>
+    <p style="color:red"><?= htmlspecialchars($error) ?></p>
+  <?php endif; ?>
 
-            const r = await fetch('/auth-system/public/oauth_vk_callback.php', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(res)
-            });
-            console.log('callback POST status:', r.status);
-            if (r.status === 200 || r.status === 204) location.href = 'protected.php';
-          } catch (err) {
-            console.error('exchangeCode/callback error:', err);
-          }
-        });
-    </script>
-</div>
+  <form method="post" action="/auth-system/public/login.php" autocomplete="off">
+    <?= $csrfInput ?>
+    <label>
+      Логин:<br>
+      <input type="text" name="login" required>
+    </label><br><br>
+
+    <label>
+      Пароль:<br>
+      <input type="password" name="pass" required>
+    </label><br><br>
+
+    <label>
+      <input type="checkbox" name="remember"> Запомнить меня
+    </label><br><br>
+
+    <button type="submit">Войти</button>
+  </form>
+
+  <p><a href="/auth-system/public/index.php">На главную</a></p>
+
+  <hr>
+  <!-- Заглушка на VK ID (кнопка пока не активна) -->
+  <form method="get" action="/auth-system/public/oauth_vk_start.php">
+    <button type="submit" disabled>Войти через VK (скоро)</button>
+  </form>
 </body>
 </html>

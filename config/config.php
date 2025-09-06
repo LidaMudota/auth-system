@@ -1,25 +1,31 @@
 <?php
-return [
-    'db' => [
-        'host' => 'localhost',
-        'user' => 'root',
-        'pass' => '',
-        'name' => 'auth',
-        'charset' => 'utf8mb4',
-    ],
-    'vk' => [
-        'client_id' => 54095571,
-        'client_secret' => 'WRLxvjS5XiYFjnorE1aj',
-        'redirect_uri' => 'http://localhost/auth-system/public/oauth_vk_callback.php',
-    ],
-    'log' => [
-        'auth_log_path' => __DIR__ . '/../storage/logs/auth.log',
-    ],
-    'security' => [
-        'csrf_key' => 'csrf_token',
-        'remember_cookie_name' => 'remember_token',
-        'remember_cookie_lifetime' => 60*60*24*7,
-        'remember_token_len' => 64,
-        'csrf_token_len' => 32,
-    ],
-];
+// /auth-system/config/config.php
+declare(strict_types=1);
+
+// Базовые пути
+const ROOT_PATH = __DIR__ . '/..';
+const SRC_PATH  = ROOT_PATH . '/src';
+const STORAGE_PATH = ROOT_PATH . '/storage';
+const LOGS_PATH = STORAGE_PATH . '/logs';
+
+// БД
+const DB_DSN  = 'mysql:host=localhost;dbname=auth_system;charset=utf8mb4';
+const DB_USER = 'root';
+const DB_PASS = '';
+
+// VK (для будущей интеграции; сейчас не используется)
+const VK_CLIENT_ID     = '';
+const VK_CLIENT_SECRET = '';
+const VK_REDIRECT_URI  = 'http://localhost/auth-system/public/oauth_vk_callback.php';
+
+// Логи
+const AUTH_LOG_FILE = LOGS_PATH . '/auth.log';
+
+// Куки «запомнить меня»
+const REMEMBER_COOKIE_NAME = 'remember_token';
+const REMEMBER_COOKIE_LIFETIME = 60 * 60 * 24 * 14; // 14 дней
+const REMEMBER_SAMESITE = 'Lax'; // Lax/Strict/None
+
+// Соль для хэшей (НЕ для password_hash) — тут только пример.
+// Для password_hash соль генерируется автоматически.
+const APP_STATIC_SALT = 'CHANGE_ME_TO_RANDOM_LONG_STRING';
