@@ -144,3 +144,7 @@ function require_auth(): array {
 function is_vk_role(?array $u): bool {
     return isset($u['role']) && $u['role'] === 'vk';
 }
+
+function is_admin_role(?array $u): bool {
+    return isset($u['role']) && $u['role'] === 'admin';
+}

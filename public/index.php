@@ -17,6 +17,7 @@ $user = current_user();
   <?php if ($user): ?>
     <p>Вы вошли как <strong><?= htmlspecialchars($user['login']) ?></strong> (роль: <?= htmlspecialchars($user['role']) ?>)</p>
     <p><a href="/auth-system/public/protected.php">Закрытая страница</a></p>
+    <p><a href="/auth-system/public/role_demo.php">Демо ролей (кнопка с ACL)</a></p>
     <p><a href="/auth-system/public/logout.php">Выйти</a></p>
   <?php else: ?>
     <p><a href="/auth-system/public/register.php">Регистрация</a></p>
