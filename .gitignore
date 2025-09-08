@@ -1,0 +1,10 @@
+/vendor/
+/storage/logs/*.log
+
+# Node.js
+/node_modules/
+/package-lock.json
+/package.json
+
+# Сборные/внешние js
+/public/assets/vkid-sdk.js
