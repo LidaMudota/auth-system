@@ -26,7 +26,7 @@ function user_role(): ?string
 function require_auth(): void
 {
     if (!current_user()) {
-        header('Location: /login.php');
+        header('Location: login.php');
         exit;
     }
 }

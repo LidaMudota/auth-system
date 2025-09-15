@@ -9,16 +9,16 @@ require_auth();
 <head>
 <meta charset="UTF-8">
 <title>Закрытая</title>
-<link rel="stylesheet" href="/assets/voltage.css">
+<link rel="stylesheet" href="assets/voltage.css">
 </head>
 <body>
 <div class="header">Секрет</div>
 <div class="box">
 <p>Это видят все авторизованные.</p>
 <?php if (user_role() === 'vk'): ?>
-<img src="/assets/vk-only.jpg" alt="Только для VK">
+    <img src="assets/vk-only.jpg" alt="Только для VK">
 <?php endif; ?>
-<p><a href="/logout.php">Выход</a></p>
+<p><a href="logout.php">Выход</a></p>
 </div>
 </body>
 </html>

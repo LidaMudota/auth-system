@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->prepare('UPDATE users SET remember_token = ? WHERE id = ?')->execute([$token, $user['id']]);
                     setcookie('remember', $token, time() + $config['cookie_lifetime'], '/', '', false, true);
                 }
-                header('Location: /protected.php');
+                header('Location: protected.php');
                 exit;
             } else {
                 log_failed_login($login, $_SERVER['REMOTE_ADDR'] ?? '');
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <title>Вход</title>
-<link rel="stylesheet" href="/assets/voltage.css">
+<link rel="stylesheet" href="assets/voltage.css">
 </head>
 <body>
 <div class="header">Вход</div>
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <label><input type="checkbox" name="remember"> Запомнить меня</label>
 <button type="submit">Войти</button>
 </form>
-<p><a href="/oauth_vk_start.php">Войти через VK</a></p>
+<p><a href="oauth_vk_start.php">Войти через VK</a></p>
 </div>
 </body>
 </html>

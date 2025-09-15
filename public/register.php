@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ->execute([$login, $hash]);
             $id = $pdo->lastInsertId();
             login_user($id, 'local');
-            header('Location: /protected.php');
+            header('Location: protected.php');
             exit;
         }
     } else {
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <title>Регистрация</title>
-<link rel="stylesheet" href="/assets/voltage.css">
+<link rel="stylesheet" href="assets/voltage.css">
 </head>
 <body>
 <div class="header">Регистрация</div>
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <input type="password" name="password" placeholder="Пароль">
 <button type="submit">Зарегистрироваться</button>
 </form>
-<p><a href="/oauth_vk_start.php">Войти через VK</a></p>
+<p><a href="oauth_vk_start.php">Войти через VK</a></p>
 </div>
 </body>
 </html>

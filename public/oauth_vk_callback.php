@@ -73,5 +73,5 @@ if ($user = $stmt->fetch(PDO::FETCH_ASSOC)) {
   login_user((int)$pdo->lastInsertId(), 'vk');
 }
 
-header('Location: /protected.php');
+header('Location: protected.php');
 exit;
