@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = 'Неверный пароль';
             }
         } else {
+            log_failed_login($login, $_SERVER['REMOTE_ADDR'] ?? '');
             $message = 'Пользователь не найден';
         }
     }

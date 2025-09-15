@@ -15,7 +15,9 @@ attempt_cookie_login();
 <div class="box">
 <a href="register.php">Регистрация</a> |
 <a href="login.php">Вход</a> |
-<a href="protected.php">Закрытая</a>
+<a href="protected.php">Закрытая</a> |
+<a href="role_demo.php">Кнопка</a> |
+<a href="messages.php">Сообщения</a>
 </div>
 </body>
 </html>
