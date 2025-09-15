@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../src/auth.php';
+require_once __DIR__ . '/../src/navigation_band.php';
+attempt_cookie_login();
 $logFile = __DIR__ . '/../storage/log.txt';
 $msgFile = __DIR__ . '/../storage/messages.txt';
 $status = '';
@@ -24,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <link rel="stylesheet" href="assets/voltage.css">
 </head>
 <body>
+<?php navigation_band(); ?>
 <div class="header">Сообщения</div>
 <div class="box">
 <?php if($status) echo '<p>'.$status.'</p>'; ?>
@@ -31,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <textarea name="text" rows="4" cols="40"></textarea>
 <button type="submit">Сохранить</button>
 </form>
-<p><a href="index.php">Главная</a></p>
 </div>
 </body>
 </html>

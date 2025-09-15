@@ -9,7 +9,7 @@ $vk  = $cfg['vk'];
 
 $code      = $_GET['code']      ?? '';
 $state     = $_GET['state']     ?? '';
-$device_id = $_GET['device_id'] ?? '';   // <— ВАЖНО: приходит от VK ID
+$device_id = $_GET['device_id'] ?? '';
 
 if ($code === '')  { http_response_code(400); exit('Нет кода авторизации'); }
 if ($state === '' || $state !== ($_SESSION['vk_oauth_state'] ?? '')) {
@@ -18,7 +18,6 @@ if ($state === '' || $state !== ($_SESSION['vk_oauth_state'] ?? '')) {
 $code_verifier = $_SESSION['vk_pkce_verifier'] ?? '';
 if ($code_verifier === '') { http_response_code(400); exit('Нет PKCE verifier'); }
 
-// Обмен код→токен (VK ID требует POST + device_id)
 $post = [
   'grant_type'    => 'authorization_code',
   'client_id'     => $vk['client_id'],
@@ -28,7 +27,6 @@ $post = [
   'code_verifier' => $code_verifier,
 ];
 
-// device_id обязателен в новом VK ID потоке — передаём, если есть
 if ($device_id !== '') {
   $post['device_id'] = $device_id;
 }
@@ -53,7 +51,6 @@ if (isset($data['error'])) {
 
 $vk_id = $data['user_id'] ?? null;
 if (!$vk_id && !empty($data['id_token'])) {
-  // fallback: достанем sub из id_token (JWT) — если user_id не пришёл
   $parts = explode('.', $data['id_token']);
   if (count($parts) === 3) {
     $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);

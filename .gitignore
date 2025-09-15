@@ -1,10 +1,13 @@
 /vendor/
-/storage/logs/*.log
-
-# Node.js
 /node_modules/
-/package-lock.json
-/package.json
-
-# Сборные/внешние js
-/public/assets/vkid-sdk.js
+/.env
+/*.log
+*.cache
+*.sqlite
+.DS_Store
+__pycache__/
+npm-debug.log*
+.idea/
+.vscode/
+/messages.txt
+/.npm-cache/

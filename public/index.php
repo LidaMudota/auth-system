@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/db.php';
+require_once __DIR__ . '/../src/navigation_band.php';
 attempt_cookie_login();
 ?>
 <!DOCTYPE html>
@@ -11,6 +12,7 @@ attempt_cookie_login();
 <link rel="stylesheet" href="assets/voltage.css">
 </head>
 <body>
+<?php navigation_band(); ?>
 <div class="header">Auth System</div>
 <div class="box">
 <a href="register.php">Регистрация</a> |

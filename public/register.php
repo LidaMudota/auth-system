@@ -1,9 +1,11 @@
 <?php
 require_once __DIR__ . '/../src/db.php';
 require_once __DIR__ . '/../src/auth.php';
+require_once __DIR__ . '/../src/navigation_band.php';
 
 $pdo = db();
 $message = '';
+attempt_cookie_login();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $login = trim($_POST['login'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -34,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <link rel="stylesheet" href="assets/voltage.css">
 </head>
 <body>
+<?php navigation_band(); ?>
 <div class="header">Регистрация</div>
 <div class="box">
 <?php if($message) echo '<p>'.$message.'</p>'; ?>

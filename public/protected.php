@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/db.php';
+require_once __DIR__ . '/../src/navigation_band.php';
 attempt_cookie_login();
 require_auth();
 ?>
@@ -12,6 +13,7 @@ require_auth();
 <link rel="stylesheet" href="assets/voltage.css">
 </head>
 <body>
+<?php navigation_band(); ?>
 <div class="header">Секрет</div>
 <div class="box">
 <p>Это видят все авторизованные.</p>

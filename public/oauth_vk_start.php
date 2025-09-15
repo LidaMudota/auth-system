@@ -18,7 +18,7 @@ $_SESSION['vk_oauth_state'] = $state;
 $params = [
   'client_id'             => $vk['client_id'],
   'redirect_uri'          => $vk['redirect_uri'],
-  'response_type'         => 'code',        // VK может вернуть type=code_v2 — ок
+  'response_type'         => 'code',
   'scope'                 => $vk['scope'],
   'state'                 => $state,
   'code_challenge'        => $code_challenge,

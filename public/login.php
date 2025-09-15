@@ -3,6 +3,7 @@ require_once __DIR__ . '/../src/csrf.php';
 require_once __DIR__ . '/../src/db.php';
 require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/logger.php';
+require_once __DIR__ . '/../src/navigation_band.php';
 $config = require __DIR__ . '/../config/config.php';
 
 $pdo = db();
@@ -46,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <link rel="stylesheet" href="assets/voltage.css">
 </head>
 <body>
+<?php navigation_band(); ?>
 <div class="header">Вход</div>
 <div class="box">
 <?php if($message) echo '<p>'.$message.'</p>'; ?>
